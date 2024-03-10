@@ -33,20 +33,28 @@ FROM salaries;
 #############################
 
 -- The following statements return the current date, current time, and current date and time:
+/*
+CURRENT_DATE delivers the current date. CURRENT_TIME delivers values with timezone. 
+CURRENT_TIME optionally takes a precision parameter, which causes the results to be rounded to that 
+many fractional digits in the second field. CURRENT_TIMESTAMP delivers values with timezones also, 
+just like CURRENT_TIME. It also takes a precision parameter, which also causes the result to be rounded 
+up to the number of digits in the seconds field that you specify.
+*/
 
 -- 2.1: Retrieve the current date
-SELECT CURRENT_DATE;
+SELECT CURRENT_DATE; --this will return the current date when this was executed.
 
 -- 2.2: Retrieve the current time
-SELECT CURRENT_TIME;
-SELECT CURRENT_TIME(1);
-SELECT CURRENT_TIME(3);
+SELECT CURRENT_TIME; --this will return the current time when this was executed.
+SELECT CURRENT_TIME(1); -- the (1) specifies the number of digit after the seconds (microseconds)
+SELECT CURRENT_TIME(3); -- the result of this is 3 digits after the seconds.
 
 -- 2.3: Retrieve the current timestamp
-SELECT CURRENT_TIMESTAMP;
+SELECT CURRENT_TIMESTAMP; -- this one returns the date and the time.
 
 -- 2.4: Retrieve the current date, current date, time, and timestamp
 SELECT CURRENT_DATE, CURRENT_TIME, CURRENT_TIME(1), CURRENT_TIME(3), CURRENT_TIMESTAMP;
+/* After running this code, you will get the information in table format. */
 
 -- You can either use CURRENT_TIMESTAMP or transaction_timestamp. If you want to retrieve the
 -- old timestamp in a text format, you can use timeofday(). Additionally, now() is traditional
@@ -55,7 +63,7 @@ SELECT CURRENT_DATE, CURRENT_TIME, CURRENT_TIME(1), CURRENT_TIME(3), CURRENT_TIM
 
 -- 2.5: Retrieve the time of the day
 SELECT transaction_timestamp();
-SELECT timeofday();
+SELECT timeofday(); -- this will return timestamp in text format
 SELECT now();
 
 #############################
@@ -71,9 +79,17 @@ SELECT now();
 
 -- 3.1: Check the difference between February 28th, 2021 and December 31st, 2019
 SELECT AGE('2021-02-28', '2019-12-31');
+/* The result of this query is below:
+"1 year 1 mon 28 days"
+*/
 
 -- 3.2: How old is the Batman movie that was released March 30, 1939
 SELECT AGE(CURRENT_DATE, '1939-03-30') AS Batman_Age;
+/* 
+This shows that the difference between the current date and this
+year that this movie was released is 83 years and 2 months and 25 days. 
+So, it gives that granularity in the dates.
+*/
 
 -- 3.3: Retrieve a list of the current age of all employees
 SELECT * FROM employees;
@@ -89,10 +105,21 @@ FROM employees;
 SELECT emp_no, AGE(to_date, from_date) AS Age
 FROM dept_manager;
 
+/*
+This will retrieved a table of manager and length of their work in the company.
+If we see a result of 8007 year, that could mean that the employee is still employed.
+*/
+
 -- 3.6: Retrieve a list of how long a manager have been working at the company
 SELECT emp_no, AGE(CURRENT_DATE, from_date) AS Age
 FROM dept_manager
 WHERE emp_no IN ('110039', '110114', '110228', '110420', '110567', '110854', '111133', '111534','111939');
+-- these emp nos., I looked up in the table before who are still employed.
+/*
+After running the query above, it will show us how many
+years that a particular manager has been working for in this
+department manager table.
+*/
 
 #############################
 -- Task Four: AGE() - Part Two
@@ -112,6 +139,9 @@ CASE
 	ELSE AGE(CURRENT_DATE, from_date)
 END
 FROM dept_manager;
+/*
+Now, we would see that we do not have 8000 plus years like we have before.
+*/
 
 -- 4.2: Retrieve a list of how long it took to ship a product to a customer
 SELECT * FROM sales;
@@ -119,6 +149,10 @@ SELECT * FROM sales;
 SELECT order_line, order_date, ship_date, AGE(ship_date, order_date) AS time_taken
 FROM sales
 ORDER BY time_taken DESC;
+/*
+Note: We can save a copy in csv format of every query result we get. By clicking the "Save results to file" button
+or by pressing F8.
+*/
 
 -- 4.3: Retrieve all the data from the salaries table
 SELECT * FROM salaries;
@@ -159,9 +193,15 @@ SELECT EXTRACT(DAY FROM CURRENT_DATE);
 
 -- 5.2: Extract the day of the week from the current date
 SELECT EXTRACT(ISODOW FROM CURRENT_DATE);
+/*
+1 represents Monday,
+2 represents Tuesday,
+so on and so forth...
+*/
 
 -- 5.3: Extract the hour of the day from the current date
 SELECT EXTRACT(HOUR FROM CURRENT_TIMESTAMP);
+/* This will return a table with two columns where the 2nd column will show the extracted hour from the timestamp.*/
 
 -- 5.4: What do you think this result will be?
 -- Of course, the result will be the day from that date which is 31.
@@ -176,9 +216,20 @@ SELECT EXTRACT(YEAR FROM DATE('2019-12-31'));
 SELECT EXTRACT(MINUTE from '084412'::TIME);
 
 -- 5.7: Retrieve a list of the ship mode and how long (in seconds) it took to ship a product to a customer
+/* Note: Since th question is how long in seconds, EPOCH is used to retrieve the seconds.*/
 SELECT order_line, order_date, ship_date, ship_mode, 
 (EXTRACT(EPOCH FROM ship_date) - EXTRACT(EPOCH FROM order_date)) AS secs_taken
 FROM sales; 
+/*
+What this does is, it extracts
+the seconds from ship date, keeps that value and then minus, it
+extracts or EPOCH or the seconds from the order_date and
+then checks the difference in the seconds.
+That's because we can now do numerical calculation on that
+value. We will see the secs_taken column, we can check the hour, check the day,
+by dividing by the appropriate measure. And so we can perform mathematical operations 
+on this sec_taken column unlike AGE. And that's difference between EXTRACT and AGE.
+*/
 
 -- 5.8: Retrieve a list of the ship mode and how long (in days) it took to ship a product to a customer
 SELECT order_line, order_date, ship_date, 
@@ -196,6 +247,10 @@ FROM employees;
 SELECT first_name, last_name, birth_date, 
 (EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM birth_date)) || ' years' AS emp_age
 FROM employees;
+/*
+What we did in this last part here is to just concatenate
+the extracted value by adding years to it using double pipe function.
+*/
 
 #############################
 -- Task Six: EXTRACT() - Part Two
@@ -350,6 +405,10 @@ SELECT * FROM employees;
 
 -- Start transaction
 BEGIN;
+/* Any transactions here will be temporarily applied to my table but not necessarily commit it to the table.
+When performing ALTER function, SQL commits it automatically to the table. But by using BEGIN, this will not be committed.
+We just have to use ROLLBACK function to use the original values in our table.
+*/
 
 ALTER TABLE employees
 ALTER COLUMN hire_date TYPE CHAR(10);
